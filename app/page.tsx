@@ -23,6 +23,10 @@ export default function Home() {
     <div className="flex flex-col items-center gap-6 mt-20">
       <h1 className="text-3xl font-bold">時間管理アプリ</h1>
 
+{/* 現在の時間を表示 */ }
+<p className="text-xl mt-4 mb-4 font-semibold text-gray-700">
+      現在時刻:{time}
+      </p>
 
 <div className="flex gap-4">  
       <button className="px-6 py-3 bg-green-500 text-white rounded-lg shadow">
