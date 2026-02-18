@@ -1,5 +1,25 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function Home() {
-  return (
+ const [time, setTime] = useState("");
+
+ useEffect(() => {
+    const updateClock = () => {
+     const now = new Date();
+     const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    setTime(`${hours}:${minutes}`);
+   };
+
+   updateClock(); // 最初に表示する// 
+   const interval = setInterval(updateClock, 60000); // 1分ごと更新
+
+   return () => clearInterval(interval);
+  },[]); 
+  
+    return (
     <div className="flex flex-col items-center gap-6 mt-20">
       <h1 className="text-3xl font-bold">時間管理アプリ</h1>
 
@@ -26,3 +46,4 @@ export default function Home() {
   )
 
 }
+
