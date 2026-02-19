@@ -1,0 +1,44 @@
+.wrap { max-width: 1200px; margin: 0 auto; padding: 24px; font-family: ui-sans-serif, system-ui; }
+.header { margin-bottom: 12px; }
+.title { font-size: 22px; font-weight: 800; margin: 0; }
+.sub { opacity: .7; margin-top: 4px; }
+.card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-bottom: 16px; background: #fff; }
+.tableCard { padding: 0; overflow: hidden; }
+.error { background:#fee; border:1px solid #f99; padding:12px; border-radius:10px; margin-bottom:16px; }
+.foot { margin-top: 10px; opacity: .75; font-size: 13px; }
+
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.h2 { margin: 0; font-size: 15px; font-weight: 800; }
+.hr { border: 0; border-top: 1px solid #eee; margin: 6px 0; }
+.hint { font-size: 13px; opacity: .75; }
+
+.input { padding: 10px; border: 1px solid #ccc; border-radius: 10px; min-width: 160px; }
+.btn { padding: 9px 12px; border: 1px solid #ccc; border-radius: 10px; background: #fff; cursor: pointer; }
+.btn.primary { background: #111; color: #fff; border-color: #111; }
+.btn.danger { border-color: #f33; }
+.btn.xs { padding: 6px 10px; border-radius: 10px; margin-left: 8px; }
+
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 12px; border-top: 1px solid #eee; }
+.table thead th { background: #f7f7f7; border-top: 0; text-align: left; }
+.r { text-align: right; }
+.bold { font-weight: 800; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.empty { padding: 16px; }
+.dimText { opacity: .6; }
+
+.badge { margin-left: 8px; padding: 2px 8px; border: 1px solid #ccc; border-radius: 999px; font-size: 12px; opacity: .85; }
+
+.calTop { display:flex; justify-content:space-between; align-items:center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.calTitle { font-weight: 900; }
+.calSel { margin-left: 10px; font-weight: 600; opacity: .7; }
+.calBtns { display:flex; gap: 8px; }
+.calGrid { display:grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.calWeek { text-align:center; font-weight: 800; opacity: .8; }
+.calCell { padding: 10px; border-radius: 12px; border:1px solid #ddd; background:#fff; position:relative; text-align:left; }
+.calCell.sel { background:#111; color:#fff; border:2px solid #111; }
+.calCell.dim { opacity: .45; }
+.calNum { font-weight: 900; }
+.dot { position:absolute; right:10px; top:10px; width:8px; height:8px; border-radius:999px; background:#111; }
+.dot.dotInv { background:#fff; }
