@@ -1,11 +1,48 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {supabase} from "@/lib/supabase";
+
 
 export default function Home() {
  const [time, setTime] = useState("");
  const [date, setDate] = useState("");
  const [menuOpen, setMenuOpen] = useState(false);
+ const [isWorking, setIsWorking] = useState(false);
+
+ const handleStartWork = async () => {
+  const today = new Date().toISOString().split("T")[0];
+
+  const { data, error } = await supabase.from("attendance").insert({
+    user_id: "09262aee-30c9-482a-864f-09b6e5629233",
+    work_date: today,
+    start_time: new Date().toISOString(),
+  });
+
+  if (error) {
+    console.error("出勤エラー:", error);
+  } else {
+    alert("出勤成功:");
+    setIsWorking(true);
+  }
+};
+
+const handleEndWork = async () => {
+  const today = new Date().toISOString().split("T")[0];
+
+  const { data, error } = await supabase
+    .from("attendance")
+    .update({ end_time: new Date().toISOString() })
+    .eq("user_id", "09262aee-30c9-482a-864f-09b6e5629233")
+    .eq("work_date", today);
+
+  if (error) {
+    console.error("退勤エラー:", error);
+  } else {
+    alert("退勤しました！");
+    setIsWorking(false); // ← 出勤状態を解除
+  }
+};
 
 useEffect(() => {
   const updateClock = () => {
@@ -80,8 +117,16 @@ useEffect(() => {
 
     {/* ボタン */}
     <div className="flex gap-6 mt-10 flex-wrap">
-      <button className="w-28 h-20 bg-emerald-500 text-white rounded-lg shadow">
-        出勤
+    <button
+      onClick={() => {
+        console.log("出勤ボタン押された！");
+        handleStartWork();
+      }}
+      disabled={isWorking}
+      className={`w-28 h-20 text-white rounded-lg shadow
+      ${isWorking ? "bg-gray-400" : "bg-emerald-500"}`}
+      >
+         出勤
       </button>
 
       <button className="w-28 h-20 bg-emerald-500 text-white rounded-lg shadow">
@@ -92,7 +137,9 @@ useEffect(() => {
         休憩終了
       </button>
 
-      <button className="w-28 h-20 bg-emerald-500 text-white rounded-lg shadow">
+      <button 
+       onClick={handleEndWork}
+       className="w-28 h-20 bg-emerald-500 text-white rounded-lg shadow">
         退勤
       </button>
     </div>
