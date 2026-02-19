@@ -3,18 +3,30 @@
 import { useEffect, useState } from "react";
 import {supabase} from "@/lib/supabase";
 
+const getToday = () => {
+  return new Date()
+    .toLocaleDateString("ja-JP", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+    .replace(/\//g, "-");
+};
+
 
 export default function Home() {
  const [time, setTime] = useState("");
  const [date, setDate] = useState("");
  const [menuOpen, setMenuOpen] = useState(false);
  const [isWorking, setIsWorking] = useState(false);
-
- const handleStartWork = async () => {
-  const today = new Date().toISOString().split("T")[0];
+ const [isOnBreak, setIsOnBreak] = useState(false);
+ const [userId, setUserId] = useState("09262aee-30c9-482a-864f-09b6e5629233");
+ 
+const handleStartWork = async () => {
+  const today = getToday();
 
   const { data, error } = await supabase.from("attendance").insert({
-    user_id: "09262aee-30c9-482a-864f-09b6e5629233",
+    user_id: userId,
     work_date: today,
     start_time: new Date().toISOString(),
   });
@@ -22,27 +34,143 @@ export default function Home() {
   if (error) {
     console.error("出勤エラー:", error);
   } else {
-    alert("出勤成功:");
+    alert("出勤しました!");
     setIsWorking(true);
   }
 };
 
 const handleEndWork = async () => {
-  const today = new Date().toISOString().split("T")[0];
+  const today = getToday();
 
   const { data, error } = await supabase
     .from("attendance")
     .update({ end_time: new Date().toISOString() })
-    .eq("user_id", "09262aee-30c9-482a-864f-09b6e5629233")
+    .eq("user_id", userId)
     .eq("work_date", today);
 
   if (error) {
     console.error("退勤エラー:", error);
   } else {
     alert("退勤しました！");
-    setIsWorking(false); // ← 出勤状態を解除
+    setIsWorking(false);
   }
 };
+
+const handleBreakStart = async () => {
+  console.log("userId:", userId);
+
+  const today = getToday();
+
+  const { data, error } = await supabase.from("break").insert({
+    user_id: userId,
+    work_date: today,
+    break_start: new Date().toISOString(),
+  });
+
+  if (error) {
+    console.error("休憩開始エラー:", JSON.stringify(error, null, 2));
+  } else {
+    alert("休憩を開始しました!");
+  }
+};
+
+const handleBreakEnd = async () => {
+  const today = getToday();
+
+  // 今日の休憩レコードを1件だけ取得
+  const { data: breakData, error: fetchError } = await supabase
+    .from("break")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("work_date", today)
+    .is("break_end", null)
+    .single();
+
+  if (fetchError) {
+    console.error("休憩終了レコード取得エラー:", fetchError);
+    return;
+  }
+
+  // break_end を更新（id で1件だけ）
+  const { error: updateError } = await supabase
+    .from("break")
+    .update({
+      break_end: new Date().toISOString(),
+    })
+    .eq("id", breakData.id);
+
+  if (updateError) {
+    console.error("休憩終了エラー:", updateError);
+  } else {
+    alert("休憩を終了しました!");
+  }
+};
+
+
+useEffect(() => {
+  const checkTodayAttendance = async () => {
+    const today = getToday(); 
+
+    const { data, error } = await supabase
+      .from("attendance")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("work_date", today)
+      .order("start_time", { ascending: true });
+
+    if (error) {
+      console.error("出勤状態取得エラー:", JSON.stringify(error, null, 2));
+      return;
+    }
+
+    if (data && data.length > 0) {
+      const latest = data[data.length - 1];
+
+      if (latest.start_time && !latest.end_time) {
+        setIsWorking(true);
+      } else {
+        setIsWorking(false);
+      }
+    } else {
+      setIsWorking(false);
+    }
+  };
+
+  checkTodayAttendance(); // ← useEffect の中で1回だけ呼ぶ
+}, [userId]);
+
+useEffect(() => {
+  const checkBreakStatus = async () => {
+    const today = getToday();
+
+    const { data, error } = await supabase
+      .from("break")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("work_date", today)
+      .order("break_start", { ascending: true });
+
+    if (error) {
+      console.error("休憩状態取得エラー:", error);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      const latest = data[data.length - 1];
+
+      // break_start はあるが break_end が null → 休憩中
+      if (latest.break_start && !latest.break_end) {
+        setIsOnBreak(true);
+      } else {
+        setIsOnBreak(false);
+      }
+    } else {
+      setIsOnBreak(false);
+    }
+  };
+
+  checkBreakStatus();
+}, [userId]);
 
 useEffect(() => {
   const updateClock = () => {
@@ -99,24 +227,40 @@ useEffect(() => {
 
     {/* メニュー（右に出す） */}
     {menuOpen && (
-      <div className="mt-4 w-40 bg-white border shadow-lg rounded ml-auto">
-        <button className="block w-full px-4 py-2 hover:bg-gray-100 border-b">
-          Aさん
+    <div className="mt-4 w-40 bg-white border shadow-lg rounded ml-auto">
+      <button
+        onClick={() => setUserId("09262aee-30c9-482a-864f-09b6e5629233")}
+        className="block w-full px-4 py-2 hover:bg-gray-100 border-b"
+      >
+        Aさん
         </button>
-        <button className="block w-full px-4 py-2 hover:bg-gray-100 border-b">
-          Bさん
+
+        <button
+          onClick={() => setUserId("0c0127be-a6a8-4106-b297-dbfbdfd32a90")}
+          className="block w-full px-4 py-2 hover:bg-gray-100 border-b"
+        >
+        Bさん
         </button>
-        <button className="block w-full px-4 py-2 hover:bg-gray-100 border-b">
-          Cさん
+
+        <button
+        onClick={() => setUserId("170688a4-2c05-4f96-9c56-ab19e572d5bb")}
+        className="block w-full px-4 py-2 hover:bg-gray-100 border-b"
+      >
+        Cさん
         </button>
-        <button className="block w-full px-4 py-2 hover:bg-gray-100">
-          Dさん
+
+        <button
+        onClick={() => setUserId("b7ce8544-da9f-4a99-993a-e62057554688")}
+        className="block w-full px-4 py-2 hover:bg-gray-100"
+        >
+        Dさん
         </button>
       </div>
-    )}
+    )}  
 
     {/* ボタン */}
     <div className="flex gap-6 mt-10 flex-wrap">
+    
     <button
       onClick={() => {
         console.log("出勤ボタン押された！");
@@ -129,13 +273,23 @@ useEffect(() => {
          出勤
       </button>
 
-      <button className="w-28 h-20 bg-emerald-500 text-white rounded-lg shadow">
+      {!isOnBreak && (
+      <button
+        onClick={handleBreakStart}
+        className="w-28 h-20 bg-emerald-500 text-white rounded-lg shadow"
+      >
         休憩開始
       </button>
+      )}
 
-      <button className="w-28 h-20 bg-emerald-500 text-white rounded-lg shadow">
+      {isOnBreak && (
+        <button
+        onClick={handleBreakEnd}
+        className="w-28 h-20 bg-emerald-500 text-white rounded-lg shadow"
+        >
         休憩終了
-      </button>
+        </button>
+      )}
 
       <button 
        onClick={handleEndWork}
